@@ -57,7 +57,15 @@ for monthly_file in monthly_files:
         
         # インデックスが日付型でない場合は変換
         if not isinstance(df_monthly.index, pd.DatetimeIndex):
-            df_monthly.index = pd.to_datetime(df_monthly.index)
+            try:
+                df_monthly.index = pd.to_datetime(df_monthly.index)
+            except ValueError as e:
+                if "Tz-aware datetime" in str(e):
+                    # タイムゾーン情報付きの場合はUTCとして処理
+                    print("タイムゾーン情報付きの日付を処理中...")
+                    df_monthly.index = pd.to_datetime(df_monthly.index, utc=True)
+                else:
+                    raise
         
         # タイムゾーン情報を削除（Excelの互換性のため）
         if hasattr(df_monthly.index, 'tz') and df_monthly.index.tz is not None:
@@ -106,15 +114,30 @@ for monthly_file in monthly_files:
         for name, group in yearly_groups:
             if not group.empty:
                 # 年足データの計算
-                yearly_row = {
-                    col_open: group.iloc[0][col_open] if col_open in group.columns else None,  # 年初の始値
-                    col_high: group[col_high].max() if col_high in group.columns else None,    # 年間最高値
-                    col_low: group[col_low].min() if col_low in group.columns else None,       # 年間最安値
-                    col_close: group.iloc[-1][col_close] if col_close in group.columns else None,  # 年末の終値
-                    col_volume: group[col_volume].sum() if col_volume in group.columns else None,  # 年間出来高合計
-                    col_dividends: group[col_dividends].sum() if col_dividends in group.columns else None,  # 年間配当合計
-                    col_splits: group[col_splits].sum() if col_splits in group.columns else None  # 年間株式分割合計
-                }
+                yearly_row = {}
+                
+                # 各カラムの処理を安全に行う
+                if col_open in group.columns:
+                    yearly_row[col_open] = group.iloc[0][col_open]  # 年初の始値
+                
+                if col_high in group.columns:
+                    yearly_row[col_high] = group[col_high].max()    # 年間最高値
+                
+                if col_low in group.columns:
+                    yearly_row[col_low] = group[col_low].min()      # 年間最安値
+                
+                if col_close in group.columns:
+                    yearly_row[col_close] = group.iloc[-1][col_close]  # 年末の終値
+                
+                if col_volume in group.columns:
+                    yearly_row[col_volume] = group[col_volume].sum()  # 年間出来高合計
+                
+                if col_dividends in group.columns:
+                    yearly_row[col_dividends] = group[col_dividends].sum()  # 年間配当合計
+                
+                if col_splits in group.columns:
+                    yearly_row[col_splits] = group[col_splits].sum()  # 年間株式分割合計
+                
                 yearly_data_list.append((name, yearly_row))
         
         # DataFrameに変換
@@ -206,16 +229,26 @@ for monthly_file in monthly_files:
                 except Exception as e:
                     print(f"元のExcelファイルに年足データを追加できませんでした: {e}")
                     break
+        else:
+            # Excelファイルが存在しない場合は新規作成
+            with pd.ExcelWriter(combined_excel_path, engine='openpyxl') as writer:
+                yearly_data.to_excel(writer, sheet_name=sheet_name)
+            print(f"新しいExcelファイルを作成し、年足データを追加しました: {combined_excel_path} (シート: {sheet_name})")
         
         # データの最初と最後の行を表示
-        print("年足データの最初の行:")
-        print(yearly_data.head())
-        
-        print("年足データの最後の行:")
-        print(yearly_data.tail())
+        if not yearly_data.empty:
+            print("年足データの最初の行:")
+            print(yearly_data.head(1))
+            
+            print("年足データの最後の行:")
+            print(yearly_data.tail(1))
+        else:
+            print("警告: 年足データが空です。")
         
     except Exception as e:
         print(f"エラーが発生しました: {e}")
+        import traceback
+        print(traceback.format_exc())  # 詳細なエラー情報を表示
     
     print("\n" + "="*80 + "\n")  # 区切り線
 
