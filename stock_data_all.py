@@ -15,6 +15,9 @@ tickers = {
 output_dir = "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
 os.makedirs(output_dir, exist_ok=True)
 print(f"データをローカルフォルダに保存します: {output_dir}")
+
+# カラム名の日本語表示の選択
+use_japanese_columns = input("カラムの表示を日本語にしますか？(y/n)\n※日本語表記にすることでこのプログラムの実行は問題は出ませんが、より詳細な分析をするときは支障が出ることがあります: ").strip().lower() == 'y'
 # 各銘柄について株価データを取得
 for ticker, name in tickers.items():
     print(f"{ticker}（{name}）の株価データを取得中...")
@@ -46,36 +49,43 @@ for ticker, name in tickers.items():
             'Stock Splits': '株式分割'
         }
         
-        # カラム名を変更したデータを作成
-        data_ja = data.copy()
-        data_ja.rename(columns=japanese_columns, inplace=True)
+        # データのコピーを作成
+        processed_data = data.copy()
+        
+        # ユーザー選択に基づいてカラム名を変更
+        if use_japanese_columns:
+            processed_data.rename(columns=japanese_columns, inplace=True)
+            print("カラム名を日本語に変換しました。")
+        else:
+            print("カラム名は英語のままです。")
         
         # 安全なファイル名を生成（ティッカー記号からピリオドを除去）
         safe_ticker = ticker.replace('.', '_')
         
-        # CSVファイルとして保存（日本語カラム）
+        # CSVファイルとして保存
         csv_path = os.path.join(output_dir, f"{safe_ticker}_{name}.csv")
-        data_ja.to_csv(csv_path)
+        processed_data.to_csv(csv_path)
         print(f"CSVファイルを保存しました: {csv_path}")
         
-        # タイムゾーン情報を削除してからExcelファイルとして保存（日本語カラム）
-        data_ja_for_excel = data_ja.copy()
-        data_ja_for_excel.index = data_ja_for_excel.index.tz_localize(None)
+        # タイムゾーン情報を削除してからExcelファイルとして保存
+        excel_data = processed_data.copy()
+        excel_data.index = excel_data.index.tz_localize(None)
         
-        # インデックスの名前を「日付」に変更
-        data_ja_for_excel.index.name = '日付'
+        # インデックスの名前を変更
+        excel_data.index.name = '日付' if use_japanese_columns else 'Date'
         
         # Excelファイルとして保存
         excel_path = os.path.join(output_dir, f"{safe_ticker}_{name}.xlsx")
-        data_ja_for_excel.to_excel(excel_path, sheet_name=name[:31])  # シート名の制限のため31文字まで
+        excel_data.to_excel(excel_path, sheet_name=name[:31])  # シート名の制限のため31文字まで
         print(f"Excelファイルを保存しました: {excel_path}")
         
         # データの最初と最後の5行を表示
-        print("最初の5日分のデータ（日本語カラム）:")
-        print(data_ja.head())
+        column_type = "日本語カラム" if use_japanese_columns else "英語カラム"
+        print(f"最初の5日分のデータ（{column_type}）:")
+        print(processed_data.head())
         
-        print("最新の5日分のデータ（日本語カラム）:")
-        print(data_ja.tail())
+        print(f"最新の5日分のデータ（{column_type}）:")
+        print(processed_data.tail())
         
     except Exception as e:
         print(f"エラーが発生しました: {e}")
