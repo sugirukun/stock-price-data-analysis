@@ -1,7 +1,7 @@
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
-import o
+import os
 import time
 # 現在の日付を取得（ファイル名用）
 today = datetime.now().strftime("%Y%m%d")

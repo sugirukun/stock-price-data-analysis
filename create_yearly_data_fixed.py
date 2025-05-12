@@ -175,7 +175,7 @@ for monthly_file in monthly_files:
         # インデックス名を設定
         yearly_data.index.name = '日付' if use_japanese_columns else 'Date'
         
-        # 年足CSVファイルを保存
+        # 年足CSVファイルをf存
         yearly_csv_path = os.path.join(output_dir, f"{ticker_and_name}_年足.csv")
         yearly_data.to_csv(yearly_csv_path)
         print(f"年足CSVファイルを保存しました: {yearly_csv_path}")
