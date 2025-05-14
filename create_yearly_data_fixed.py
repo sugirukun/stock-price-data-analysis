@@ -2,8 +2,6 @@ import pandas as pd
 import os
 import glob
 from datetime import datetime
-from openpyxl import load_workbook
-import time
 
 # 出力ディレクトリを確保
 output_dir = "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
@@ -14,8 +12,8 @@ print(f"データをローカルフォルダに保存します: {output_dir}")
 monthly_files = glob.glob(os.path.join(output_dir, "*_月足.csv"))
 print(f"見つかった月足ファイル: {len(monthly_files)}個")
 
-# ユーザーにカラム名の言語を確認
-use_japanese_columns = input("カラムの表示を日本語にしますか？(y/n): ").strip().lower() == 'y'
+# カラム名の言語を自動的に入力ファイルに合わせる
+print("入力ファイルのカラム名形式を継承します。")
 
 for monthly_file in monthly_files:
     print(f"処理中: {os.path.basename(monthly_file)}")
@@ -144,96 +142,17 @@ for monthly_file in monthly_files:
         if yearly_data_list:
             yearly_data = pd.DataFrame([row for _, row in yearly_data_list], index=[name for name, _ in yearly_data_list])
         
-        # カラム名を希望の言語に変更
-        if use_japanese_columns and not is_jp:
-            column_mapping = {
-                'Open': '始値',
-                'High': '高値',
-                'Low': '安値',
-                'Close': '終値',
-                'Volume': '出来高',
-                'Dividends': '配当',
-                'Stock Splits': '株式分割'
-            }
-            # 存在する列名のみをマッピング
-            mapping = {col: column_mapping[col] for col in yearly_data.columns if col in column_mapping}
-            yearly_data.rename(columns=mapping, inplace=True)
-        elif not use_japanese_columns and is_jp:
-            column_mapping = {
-                '始値': 'Open',
-                '高値': 'High',
-                '安値': 'Low',
-                '終値': 'Close',
-                '出来高': 'Volume',
-                '配当': 'Dividends',
-                '株式分割': 'Stock Splits'
-            }
-            # 存在する列名のみをマッピング
-            mapping = {col: column_mapping[col] for col in yearly_data.columns if col in column_mapping}
-            yearly_data.rename(columns=mapping, inplace=True)
+        # 入力ファイルのカラム名形式を継承（日本語/英語を自動判断）
+        use_japanese_columns = is_jp
         
+        # カラム名を希望の言語に変更（必要なし - 入力形式を継承）
         # インデックス名を設定
         yearly_data.index.name = '日付' if use_japanese_columns else 'Date'
         
-        # 年足CSVファイルをf存
+        # 年足CSVファイルを保存
         yearly_csv_path = os.path.join(output_dir, f"{ticker_and_name}_年足.csv")
-        yearly_data.to_csv(yearly_csv_path)
+        yearly_data.to_csv(yearly_csv_path, encoding='utf-8-sig')
         print(f"年足CSVファイルを保存しました: {yearly_csv_path}")
-        
-        # 元のExcelファイルに年足データを追加
-        combined_excel_path = os.path.join(output_dir, f"{ticker_and_name}.xlsx")
-        
-        # シート名の決定（銘柄名_年足）
-        if "任天堂" in ticker_and_name:
-            sheet_name = "任天堂_年足"
-        elif "eMAXIS" in ticker_and_name:
-            sheet_name = "eMAXIS_年足"
-        elif "アップル" in ticker_and_name:
-            sheet_name = "アップル_年足"
-        else:
-            sheet_name = f"{ticker_and_name.split('_')[-1][:15]}_年足"
-        
-        # シート名の長さ制限（31文字まで）
-        sheet_name = sheet_name[:31]
-        
-        if os.path.exists(combined_excel_path):
-            # ファイルが開かれていないことを確認
-            max_attempts = 5
-            for attempt in range(max_attempts):
-                try:
-                    # シートの存在を確認し、存在する場合は削除
-                    book = load_workbook(combined_excel_path)
-                    if sheet_name in book.sheetnames:
-                        print(f"シート '{sheet_name}' はすでに存在します。削除します。")
-                        std = book[sheet_name]
-                        book.remove(std)
-                        book.save(combined_excel_path)
-                    book.close()
-                    
-                    # ファイルの保存と閉じる操作の後に少し待機
-                    time.sleep(1)
-                    
-                    # Excelファイルに年足データを追加
-                    with pd.ExcelWriter(combined_excel_path, engine='openpyxl', mode='a') as writer:
-                        yearly_data.to_excel(writer, sheet_name=sheet_name)
-                    print(f"年足データを元のExcelファイルに追加しました: {combined_excel_path} (シート: {sheet_name})")
-                    break  # 成功したらループを抜ける
-                    
-                except PermissionError as e:
-                    if attempt < max_attempts - 1:
-                        print(f"ファイルが使用中です。再試行します... ({attempt+1}/{max_attempts})")
-                        time.sleep(2)  # 2秒待機
-                    else:
-                        print(f"権限エラー (最大試行回数に到達): {e}")
-                        print("年足データを元のExcelファイルに追加できませんでした。")
-                except Exception as e:
-                    print(f"元のExcelファイルに年足データを追加できませんでした: {e}")
-                    break
-        else:
-            # Excelファイルが存在しない場合は新規作成
-            with pd.ExcelWriter(combined_excel_path, engine='openpyxl') as writer:
-                yearly_data.to_excel(writer, sheet_name=sheet_name)
-            print(f"新しいExcelファイルを作成し、年足データを追加しました: {combined_excel_path} (シート: {sheet_name})")
         
         # データの最初と最後の行を表示
         if not yearly_data.empty:
@@ -252,4 +171,4 @@ for monthly_file in monthly_files:
     
     print("\n" + "="*80 + "\n")  # 区切り線
 
-print("処理が完了しました。年足データを作成し、保存しました。")
+print("処理が完了しました。年足データをCSV形式で保存しました。")
