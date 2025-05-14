@@ -3,14 +3,52 @@ import pandas as pd
 from datetime import datetime
 import os
 import time
+
 # 現在の日付を取得（ファイル名用）
 today = datetime.now().strftime("%Y%m%d")
-# 取得したい銘柄のリスト
-tickers = {
-    "7974.T": "任天堂",         # 任天堂の証券コード (東証)
-    "1387.T": "eMAXIS Slim米国株式(S&P500)",  # eMAXIS Slim米国株式(S&P500)のETFコード
-    "AAPL": "アップル"          # Apple (米国株)
-}
+
+# ユーザーにティッカーシンボルの入力を求める
+print("株価データを取得するティッカーシンボルを入力してください。")
+print("複数のティッカーシンボルを入力する場合はカンマ(,)で区切ってください。")
+print("例: 7974.T,1387.T,AAPL")
+print("※日本株は '.T'をつけてください (例: 7974.T)")
+
+# ユーザー入力からティッカーシンボルを取得
+ticker_input = input("ティッカーシンボル: ").strip()
+ticker_list = [t.strip() for t in ticker_input.split(',') if t.strip()]
+
+if not ticker_list:
+    print("ティッカーシンボルが入力されていません。例として以下の銘柄を使用します。")
+    tickers = {
+        "7974.T": "任天堂",         # 任天堂
+        "1387.T": "eMAXIS Slim米国株式(S&P500)",  # eMAXIS Slim米国株式
+        "AAPL": "アップル"          # Apple
+    }
+else:
+    # ティッカーシンボルから銘柄名を取得（または入力を求める）
+    tickers = {}
+    for ticker in ticker_list:
+        try:
+            # ティッカー情報を取得してみる
+            stock_info = yf.Ticker(ticker).info
+            if 'shortName' in stock_info and stock_info['shortName']:
+                suggested_name = stock_info['shortName']
+                print(f"{ticker}の銘柄名として「{suggested_name}」が見つかりました。")
+                use_suggested = input(f"この銘柄名を使用しますか？(y/n、nの場合は手動入力): ").strip().lower() == 'y'
+                
+                if use_suggested:
+                    tickers[ticker] = suggested_name
+                else:
+                    manual_name = input(f"{ticker}の銘柄名を入力してください: ").strip()
+                    tickers[ticker] = manual_name
+            else:
+                manual_name = input(f"{ticker}の銘柄名を入力してください: ").strip()
+                tickers[ticker] = manual_name
+        except Exception as e:
+            print(f"警告: {ticker}の情報取得中にエラーが発生しました: {e}")
+            manual_name = input(f"{ticker}の銘柄名を入力してください: ").strip()
+            tickers[ticker] = manual_name
+
 # 出力ディレクトリを確保（ローカルフォルダに保存）
 output_dir = "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
 os.makedirs(output_dir, exist_ok=True)
