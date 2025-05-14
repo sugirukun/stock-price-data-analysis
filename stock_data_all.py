@@ -35,10 +35,13 @@ else:
         try:
             # 特定の既知のティッカーに対するデフォルト名を設定
             default_names = {
-                "JPY=X": "米ドル/円",
-                "EURJPY=X": "ユーロ/円",
+                "JPY=X": "米ドル円",
+                "EURJPY=X": "ユーロ円",
                 "^N225": "日経平均",
-                "^TPX": "TOPIX",
+                "^TPX": "TOPIX"JPY=X,
+                "TPX.I": "TOPIX",
+                "1306.T": "TOPIX連動ETF",
+                "1348.T": "MAXIS_TOPIX",
                 "^DJI": "NYダウ",
                 "^SOX": "SOX半導体指数",
                 "^GSPC": "S&P500",
@@ -143,8 +146,11 @@ for ticker, name in tickers.items():
             else:
                 print(f"{period_name}のカラム名は英語のままです。")
             
+            # 銘柄名からファイル名に使えない文字を削除
+            safe_name = name.replace('/', '').replace('\\', '').replace(':', '').replace('*', '').replace('?', '').replace('"', '').replace('<', '').replace('>', '').replace('|', '')
+            
             # CSVファイルとして保存（エンコーディングを明示的に指定）
-            csv_path = os.path.join(output_dir, f"{safe_ticker}_{name}_{period_name}.csv")
+            csv_path = os.path.join(output_dir, f"{safe_ticker}_{safe_name}_{period_name}.csv")
             processed_data.to_csv(csv_path, encoding='utf-8-sig')
             print(f"{period_name}のCSVファイルを保存しました: {csv_path}")
             
@@ -156,8 +162,11 @@ for ticker, name in tickers.items():
             print(processed_data.tail())
             print("\n" + "-"*50 + "\n")  # 区切り線
         
+        # 銘柄名からファイル名に使えない文字を削除
+        safe_name = name.replace('/', '').replace('\\', '').replace(':', '').replace('*', '').replace('?', '').replace('"', '').replace('<', '').replace('>', '').replace('|', '')
+        
         # Excelファイルとして全期間データを1つのファイルに保存
-        excel_path = os.path.join(output_dir, f"{safe_ticker}_{name}.xlsx")
+        excel_path = os.path.join(output_dir, f"{safe_ticker}_{safe_name}.xlsx")
         with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
             for period_name, data in period_data.items():
                 # データのコピーを作成
@@ -174,7 +183,7 @@ for ticker, name in tickers.items():
                 excel_data.index.name = '日付' if use_japanese_columns else 'Date'
                 
                 # シート名（31文字以内に制限）
-                sheet_name = f"{name[:15]}_{period_name}" if len(name) > 15 else f"{name}_{period_name}"
+                sheet_name = f"{safe_name[:15]}_{period_name}" if len(safe_name) > 15 else f"{safe_name}_{period_name}"
                 sheet_name = sheet_name[:31]  # シート名の制限のため31文字まで
                 
                 # シートにデータを書き込み
