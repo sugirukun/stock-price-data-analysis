@@ -12,6 +12,10 @@ print("株価データを取得するティッカーシンボルを入力して�
 print("複数のティッカーシンボルを入力する場合はカンマ(,)で区切ってください。")
 print("例: 7974.T,1387.T,AAPL")
 print("※日本株は '.T'をつけてください (例: 7974.T)")
+print("\n特殊な銘柄のティッカーシンボル例:")
+print("- 為替レート: JPY=X (米ドル/円), EUR=X (ユーロ/米ドル), EURJPY=X (ユーロ/円)")
+print("- 株価指数: ^N225 (日経平均), ^TPX (TOPIX), ^DJI (NYダウ), ^SOX (半導体指数), ^GSPC (S&P500)")
+print("- ETF: 純金上場信託は '1540.T' または '1540.JP' を試してください")
 
 # ユーザー入力からティッカーシンボルを取得
 ticker_input = input("ティッカーシンボル: ").strip()
@@ -29,7 +33,26 @@ else:
     tickers = {}
     for ticker in ticker_list:
         try:
-            # ティッカー情報を取得してみる
+            # 特定の既知のティッカーに対するデフォルト名を設定
+            default_names = {
+                "JPY=X": "米ドル/円",
+                "EURJPY=X": "ユーロ/円",
+                "^N225": "日経平均",
+                "^TPX": "TOPIX",
+                "^DJI": "NYダウ",
+                "^SOX": "SOX半導体指数",
+                "^GSPC": "S&P500",
+                "1540.T": "純金上場信託",
+                "1540.JP": "純金上場信託"
+            }
+            
+            if ticker in default_names:
+                suggested_name = default_names[ticker]
+                print(f"{ticker}の銘柄名として「{suggested_name}」を使用します。")
+                tickers[ticker] = suggested_name
+                continue
+            
+            # Yahoo FinanceのAPIからティッカー情報を取得
             stock_info = yf.Ticker(ticker).info
             if 'shortName' in stock_info and stock_info['shortName']:
                 suggested_name = stock_info['shortName']
