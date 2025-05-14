@@ -16,8 +16,9 @@ output_dir = "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
 os.makedirs(output_dir, exist_ok=True)
 print(f"データをローカルフォルダに保存します: {output_dir}")
 
-# カラム名の日本語表示の選択
-use_japanese_columns = input("カラムの表示を日本語にしますか？(y/n)\n※日本語表記にすることでこのプログラムの実行は問題は出ませんが、より詳細な分析をするときは支障が出ることがあります: ").strip().lower() == 'y'
+# カラム名は英語のまま使用します
+use_japanese_columns = False
+print("カラム名は英語表記を使用します。")
 
 # 期間タイプの定義
 frequency_types = {
@@ -81,17 +82,16 @@ for ticker, name in tickers.items():
             else:
                 print(f"{period_name}のカラム名は英語のままです。")
             
-            # CSVファイルとして保存
+            # CSVファイルとして保存（エンコーディングを明示的に指定）
             csv_path = os.path.join(output_dir, f"{safe_ticker}_{name}_{period_name}.csv")
-            processed_data.to_csv(csv_path)
+            processed_data.to_csv(csv_path, encoding='utf-8-sig')
             print(f"{period_name}のCSVファイルを保存しました: {csv_path}")
             
             # データの最初と最後の5行を表示
-            column_type = "日本語カラム" if use_japanese_columns else "英語カラム"
-            print(f"{period_name}の最初の5日分のデータ（{column_type}）:")
+            print(f"{period_name}の最初の5日分のデータ:")
             print(processed_data.head())
             
-            print(f"{period_name}の最新の5日分のデータ（{column_type}）:")
+            print(f"{period_name}の最新の5日分のデータ:")
             print(processed_data.tail())
             print("\n" + "-"*50 + "\n")  # 区切り線
         
