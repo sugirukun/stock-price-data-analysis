@@ -29,15 +29,20 @@ for yearly_csv_file in yearly_csv_files:
         # 年足CSVデータを読み込む
         yearly_data = pd.read_csv(yearly_csv_file, index_col=0, parse_dates=True)
         
-        # シート名の生成（銘柄名_年足）
-        if "任天堂" in ticker_and_name:
-            sheet_name = "任天堂_年足"
-        elif "eMAXIS" in ticker_and_name:
-            sheet_name = "eMAXIS_年足"
-        elif "アップル" in ticker_and_name:
-            sheet_name = "アップル_年足"
+        # ティッカーシンボルまたは銘柄コードから銘柄名を抽出
+        # ファイル名のパターンは通常「コード_銘柄名_年足.csv」の形式と想定
+        # または単に「銘柄名_年足.csv」の場合もある
+        
+        # ファイル名から銘柄名を抽出
+        if "_" in ticker_and_name:
+            # ファイル名に_が含まれる場合、最後の部分を銘柄名と仮定
+            stock_name = ticker_and_name.split("_")[-1]
         else:
-            sheet_name = f"{ticker_and_name.split('_')[-1][:15]}_年足"
+            # _がない場合はそのままを銘柄名として使用
+            stock_name = ticker_and_name
+            
+        # シート名を作成（銘柄名_年足）
+        sheet_name = f"{stock_name}_年足"
         
         # シート名の長さ制限（31文字まで）
         sheet_name = sheet_name[:31]

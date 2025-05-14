@@ -31,11 +31,25 @@ def add_quarterly_to_excel(quarterly_file_path, excel_dir):
         
         if not excel_files:
             print(f"警告: {ticker_name}に対応するExcelファイルが見つかりませんでした。新規作成します。")
+            # ティッカーシンボルまたは銘柄コードから銘柄名を抽出
+            if "_" in ticker_name:
+                # ファイル名に_が含まれる場合、最後の部分を銘柄名と仮定
+                stock_name = ticker_name.split("_")[-1]
+            else:
+                # _がない場合はそのままを銘柄名として使用
+                stock_name = ticker_name
+                
+            # シート名を作成（銘柄名_四半期足）
+            sheet_name = f"{stock_name}_四半期足"
+            
+            # シート名の長さ制限（31文字まで）
+            sheet_name = sheet_name[:31]
+            
             # 新規Excelファイルを作成
             excel_path = os.path.join(excel_dir, f"{ticker_name}.xlsx")
             with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
                 # 既存のシートに月足データを書き込む
-                df_quarterly.to_excel(writer, sheet_name='四半期足', index=False)
+                df_quarterly.to_excel(writer, sheet_name=sheet_name, index=False)
             print(f"新規Excelファイル作成: {excel_path}")
             return True
         
@@ -46,11 +60,29 @@ def add_quarterly_to_excel(quarterly_file_path, excel_dir):
         # Excelファイルを開く
         book = load_workbook(excel_path)
         
-        # '四半期足'シートが存在するか確認し、なければ作成
-        if '四半期足' not in book.sheetnames:
-            sheet = book.create_sheet('四半期足')
+        # ティッカーシンボルまたは銘柄コードから銘柄名を抽出
+        # ファイル名のパターンは通常「コード_銘柄名_四半期足.csv」の形式と想定
+        # または単に「銘柄名_四半期足.csv」の場合もある
+        
+        # ファイル名から銘柄名を抽出
+        if "_" in ticker_name:
+            # ファイル名に_が含まれる場合、最後の部分を銘柄名と仮定
+            stock_name = ticker_name.split("_")[-1]
         else:
-            sheet = book['四半期足']
+            # _がない場合はそのままを銘柄名として使用
+            stock_name = ticker_name
+            
+        # シート名を作成（銘柄名_四半期足）
+        sheet_name = f"{stock_name}_四半期足"
+        
+        # シート名の長さ制限（31文字まで）
+        sheet_name = sheet_name[:31]
+        
+        # '銘柄名_四半期足'シートが存在するか確認し、なければ作成
+        if sheet_name not in book.sheetnames:
+            sheet = book.create_sheet(sheet_name)
+        else:
+            sheet = book[sheet_name]
             # シートをクリア
             for row in sheet.rows:
                 for cell in row:
@@ -64,7 +96,7 @@ def add_quarterly_to_excel(quarterly_file_path, excel_dir):
         
         # Excelファイルを保存
         book.save(excel_path)
-        print(f"四半期足データ追加完了: {excel_path}")
+        print(f"四半期足データをシート「{sheet_name}」に追加完了: {excel_path}")
         return True
         
     except Exception as e:
