@@ -80,16 +80,31 @@ def convert_monthly_to_quarterly(monthly_file_path):
         quarter_start_month = (quarter - 1) * 3 + 1
         quarter_date = datetime(year, quarter_start_month, 1)
         
-        quarterly_data.append({
-            'Date': quarter_date,
-            '始値': open_price,
-            '高値': high_price,
-            '安値': low_price,
-            '終値': close_price,
-            '出来高': volume,
-            '配当': dividend,
-            '株式分割': stock_split
-        })
+        # 入力ファイルのカラム名の言語に合わせてデータを追加
+        if 'Open' in df_monthly.columns:
+            # 英語カラム名の場合
+            quarterly_data.append({
+                'Date': quarter_date,
+                'Open': open_price,
+                'High': high_price,
+                'Low': low_price,
+                'Close': close_price,
+                'Volume': volume,
+                'Dividends': dividend,
+                'Stock Splits': stock_split
+            })
+        else:
+            # 日本語カラム名の場合
+            quarterly_data.append({
+                'Date': quarter_date,
+                '始値': open_price,
+                '高値': high_price,
+                '安値': low_price,
+                '終値': close_price,
+                '出来高': volume,
+                '配当': dividend,
+                '株式分割': stock_split
+            })
     
     # データフレームに変換
     df_quarterly = pd.DataFrame(quarterly_data)
@@ -122,8 +137,8 @@ def main():
             # 出力ファイルパス
             output_path = os.path.join(data_folder, f"{ticker_name}_四半期足.csv")
             
-            # CSVファイルに保存
-            df_quarterly.to_csv(output_path, index=False)
+            # CSVファイルに保存（エンコーディングを明示的に指定）
+            df_quarterly.to_csv(output_path, index=False, encoding='utf-8-sig')
             
             print(f"変換完了: {ticker_name}")
         except Exception as e:
