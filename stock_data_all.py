@@ -14,8 +14,8 @@ print("例: 7974.T,1387.T,AAPL")
 print("※日本株は '.T'をつけてください (例: 7974.T)")
 print("\n特殊な銘柄のティッカーシンボル例:")
 print("- 為替レート: JPY=X (米ドル/円), EUR=X (ユーロ/米ドル), EURJPY=X (ユーロ/円)")
-print("- 株価指数: ^N225 (日経平均), ^TPX (TOPIX), ^DJI (NYダウ), ^SOX (半導体指数), ^GSPC (S&P500)")
-print("- ETF: 純金上場信託は '1540.T' または '1540.JP' を試してください")
+print("- 株価指数: ^N225 (日経平均), ^DJI (NYダウ), ^SOX (半導体指数), ^IXIC(NASDAQ)")
+print("- ETF: 純金上場信託は 1540.T  MAXIS トピックス上場投信は　1348.T を試してください")
 
 # ユーザー入力からティッカーシンボルを取得
 ticker_input = input("ティッカーシンボル: ").strip()
