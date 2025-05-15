@@ -1,0 +1,18 @@
+{
+    "tickers": [
+        {
+            "symbol": "7974.T",
+            "name": "任天堂"
+        },
+        {
+            "symbol": "9766.T",
+            "name": "Konami Group Corporation"
+        },
+        {
+            "symbol": "9697.T",
+            "name": "Capcom Co., Ltd."
+        }
+    ],
+    "use_japanese_columns": false,
+    "output_dir": "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
+}
