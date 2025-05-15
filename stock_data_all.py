@@ -38,7 +38,7 @@ else:
                 "JPY=X": "米ドル円",
                 "EURJPY=X": "ユーロ円",
                 "^N225": "日経平均",
-                "^TPX": "TOPIX"JPY=X,
+                "^TPX": "TOPIX",
                 "TPX.I": "TOPIX",
                 "1306.T": "TOPIX連動ETF",
                 "1348.T": "MAXIS_TOPIX",

@@ -1,0 +1,7 @@
+下記のスクリプトを上から順番に実行する総合スクリプトを書いてみてください。
+C:\Users\rilak\Desktop\株価\stock_data_all.py
+C:\Users\rilak\Desktop\株価\create_quarterly_data.py
+C:\Users\rilak\Desktop\株価\create_yearly_data_fixed.py
+C:\Users\rilak\Desktop\株価\add_quarterly_to_excel.py
+C:\Users\rilak\Desktop\株価\add_yearly_data_to_excel.py
+スクリプト名はテスト総合としてください。
