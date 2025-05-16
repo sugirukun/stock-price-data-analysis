@@ -1,193 +1,183 @@
-import os
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import os
 import numpy as np
 from datetime import datetime
+import japanize_matplotlib
 
-# 日本語フォントの設定
-plt.rcParams['font.family'] = 'Yu Gothic'  # または 'MS Gothic', 'Meiryo' など
+# ファイルを読み込むディレクトリとファイル名のパターン
+directory = r"C:\Users\rilak\Desktop\株価\株価データ"
+# 四半期足のファイルのみをフィルタリング
+files = [f for f in os.listdir(directory) if f.endswith('.csv') and '四半期足' in f]
 
-# フォルダパスの設定
-input_folder = r"C:\Users\rilak\Desktop\株価\株価データ"
-output_folder = r"C:\Users\rilak\Desktop\株価\分析結果"
+# 結果を保存するディレクトリ
+result_dir = r"C:\Users\rilak\Desktop\株価\分析結果"
+os.makedirs(result_dir, exist_ok=True)
 
-# 出力フォルダが存在しない場合は作成
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-
-# フォルダ内のCSVファイルを取得
-all_files = [f for f in os.listdir(input_folder) if f.endswith('.csv')]
-
-# 四半期足データのファイルだけをフィルタリング
-# ファイル名に「四半期」「Q」「quarter」などのキーワードが含まれるものを選択
-quarterly_files = []
-for file in all_files:
-    # 四半期足データを示す可能性のあるキーワード
-    if any(keyword in file.lower() for keyword in ['四半期', 'q', 'quarter', '3ヶ月', '3か月', '3ヵ月']):
-        quarterly_files.append(file)
-
-# 四半期足ファイルが見つからない場合は、ユーザーに確認
-if not quarterly_files:
-    print("四半期足データと思われるファイルが見つかりませんでした。")
-    print("利用可能なCSVファイル:")
-    for i, file in enumerate(all_files):
-        print(f"{i+1}. {file}")
+# ユーザーに日付範囲を問い合わせる
+def get_date_range():
+    print("分析したい期間を指定してください。")
     
-    # ここで分析に使用するファイルを選択するような処理を追加することもできます
-    # 例えば、手動で番号を入力してもらうなど
+    # デフォルト値を設定
+    default_start = '2020-01-01'
+    default_end = '2025-01-01'
     
-    # 今回はサンプルとして、利用可能な全CSVファイルを使用します
-    quarterly_files = all_files
-    print("すべてのCSVファイルを使用します。")
+    # 開始日の入力
+    while True:
+        start_input = input(f"開始日（YYYY-MM-DD形式、例: 2020-01-01）[Enter で {default_start}]: ")
+        # デフォルト値を使用
+        if start_input == "":
+            start_date = default_start
+            break
+        # 入力値を検証
+        try:
+            datetime.strptime(start_input, '%Y-%m-%d')
+            start_date = start_input
+            break
+        except ValueError:
+            print("無効な日付形式です。YYYY-MM-DD形式で入力してください。")
+    
+    # 終了日の入力
+    while True:
+        end_input = input(f"終了日（YYYY-MM-DD形式、例: 2025-01-01）[Enter で {default_end}]: ")
+        # デフォルト値を使用
+        if end_input == "":
+            end_date = default_end
+            break
+        # 入力値を検証
+        try:
+            datetime.strptime(end_input, '%Y-%m-%d')
+            end_date = end_input
+            break
+        except ValueError:
+            print("無効な日付形式です。YYYY-MM-DD形式で入力してください。")
+    
+    print(f"分析期間: {start_date} から {end_date} まで")
+    return start_date, end_date
 
-# データを格納するリスト
-stock_data = []
-stock_names = []
+# ユーザーから日付範囲を取得
+start_date, end_date = get_date_range()
 
-# ファイルを読み込む
-print(f"読み込む四半期足ファイル数: {len(quarterly_files)}")
-for file in quarterly_files:
-    file_path = os.path.join(input_folder, file)
+# 四半期足データを処理して変動率を計算する関数
+def process_quarterly_data(file_path, start_date, end_date):
     try:
-        print(f"\n処理中: {file}")
+        # データの読み込み
+        df = pd.read_csv(file_path, index_col=0, parse_dates=True)
         
-        # CSVファイルを読み込む（エンコーディングを試す）
-        try:
-            df = pd.read_csv(file_path, encoding='shift-jis')
-        except UnicodeDecodeError:
-            try:
-                df = pd.read_csv(file_path, encoding='utf-8')
-            except UnicodeDecodeError:
-                df = pd.read_csv(file_path, encoding='cp932')
+        # タイムゾーン情報を削除
+        if df.index.tz is not None:
+            df.index = df.index.tz_localize(None)
         
-        print(f"データ行数: {len(df)}")
-        print(f"列名: {df.columns.tolist()}")
+        # インデックスがDatetimeIndexであることを確認
+        if not isinstance(df.index, pd.DatetimeIndex):
+            print(f"警告: {file_path} のインデックスがDatetimeIndexではありません。スキップします。")
+            return None
         
-        # 日付列を特定する
-        date_column = None
-        for col in df.columns:
-            if isinstance(col, str) and ('日付' in col or 'Date' in col or '年月日' in col):
-                date_column = col
-                break
-        
-        if date_column is None:
-            print(f"警告: {file} には日付列が見つかりませんでした。先頭列を日付として使用します。")
-            date_column = df.columns[0]
+        # データが空でないことを確認
+        if df.empty:
+            print(f"警告: {file_path} のデータが空です。スキップします。")
+            return None
             
-        print(f"使用する日付列: {date_column}")
+        # 必須カラムがあることを確認
+        if 'Close' not in df.columns:
+            print(f"警告: {file_path} に 'Close' カラムがありません。スキップします。")
+            return None
         
-        # 日付を適切な形式に変換
-        try:
-            df[date_column] = pd.to_datetime(df[date_column])
-        except:
-            print(f"警告: {file} の日付列をdatetime形式に変換できませんでした。別の形式で試みます。")
-            try:
-                df[date_column] = pd.to_datetime(df[date_column], format='%Y/%m/%d')
-            except:
-                try:
-                    df[date_column] = pd.to_datetime(df[date_column], format='%Y-%m-%d')
-                except:
-                    print(f"エラー: {file} の日付列を適切な形式に変換できませんでした。スキップします。")
-                    continue
+        # まずデータを期間でフィルタリング
+        df = df[(df.index >= start_date) & (df.index <= end_date)]
         
-        # インデックスとして日付列を設定
-        df.set_index(date_column, inplace=True)
+        if df.empty:
+            print(f"警告: {file_path} の指定期間内にデータがありません。スキップします。")
+            return None
         
-        # 株価データ列を特定
-        close_column = None
-        for col in df.columns:
-            if isinstance(col, str) and ('終値' in col or 'Close' in col or '株価' in col or '調整後終値' in col):
-                close_column = col
-                break
+        # すでに四半期足データなので、そのまま使用
+        quarterly_data = df.copy()
         
-        if close_column is None:
-            # 終値の列名が見つからない場合は、数値データを含む最初の列を使用
-            for col in df.columns:
-                if pd.api.types.is_numeric_dtype(df[col]):
-                    close_column = col
-                    break
+        # 開始日の値を取得
+        if quarterly_data.empty:
+            print(f"警告: {file_path} の四半期データが空です。スキップします。")
+            return None
+            
+        first_value = quarterly_data.iloc[0]['Close']
         
-        if close_column is None:
-            print(f"警告: {file} には適切な株価データ列が見つかりませんでした。スキップします。")
-            continue
+        # 変動率の計算（開始日を1.0として正規化）
+        normalized_data = quarterly_data.copy()
+        normalized_data['Normalized'] = quarterly_data['Close'] / first_value
         
-        print(f"使用する株価データ列: {close_column}")
-        
-        # 株価データを追加
-        stock_data.append(df[close_column])
-        
-        # ファイル名から銘柄名を取得（拡張子を除く）
-        stock_name = os.path.splitext(file)[0]
-        stock_names.append(stock_name)
-        
-        print(f"{file} の読み込みに成功しました。データ数: {len(df)}")
-        print(f"期間: {df.index.min()} から {df.index.max()}")
+        print(f"処理完了: {file_path} - 四半期データ数: {len(normalized_data)}")
+        return normalized_data
         
     except Exception as e:
-        print(f"エラー: {file} の読み込みに失敗しました: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"エラー発生: {file_path} の処理中にエラーが発生しました: {str(e)}")
+        return None
 
-# データが読み込めたかチェック
-if len(stock_data) == 0:
-    print("読み込めるデータがありませんでした。")
+# 全銘柄の変動率データを格納するリスト
+all_normalized_data = []
+stock_names = []
+
+# 各ファイルを処理
+print(f"四半期足ファイル総数: {len(files)}")
+for file in files:
+    file_path = os.path.join(directory, file)
+    stock_name = file.split('.')[0]  # ファイル名から銘柄名を取得
+    
+    print(f"処理中: {file}")
+    normalized_data = process_quarterly_data(file_path, start_date, end_date)
+    
+    if normalized_data is not None and not normalized_data.empty:
+        # 'Normalized' カラムがあることを確認
+        if 'Normalized' in normalized_data.columns:
+            all_normalized_data.append(normalized_data['Normalized'])
+            stock_names.append(stock_name)
+            print(f"追加: {stock_name} - データ数: {len(normalized_data)}")
+        else:
+            print(f"警告: {file_path} の処理結果に 'Normalized' カラムがありません。")
+
+print(f"処理完了した銘柄数: {len(all_normalized_data)}")
+
+# 同じ日付インデックスで全銘柄のデータを結合
+if all_normalized_data:
+    combined_data = pd.concat(all_normalized_data, axis=1)
+    combined_data.columns = stock_names
+    
+    print(f"結合後のデータ形状: {combined_data.shape}")
+    print(f"結合後のインデックス: {combined_data.index[:5]} ... {combined_data.index[-5:]}")
+    
+    # グラフの作成
+    plt.figure(figsize=(15, 8))
+    
+    for column in combined_data.columns:
+        plt.plot(combined_data.index, combined_data[column], label=column, marker='o')
+    
+    # タイトルに期間を含める
+    plt.title(f'四半期足変動率比較（{start_date}～{end_date}、開始日基準：1.0）')
+    plt.xlabel('四半期')
+    plt.ylabel('変動率（開始日=1.0）')
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    
+    # 凡例を調整（多すぎる場合は別の場所に表示）
+    if len(combined_data.columns) > 10:
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    else:
+        plt.legend()
+    
+    plt.tight_layout()
+    
+    # ファイル名に期間情報を含める
+    period_str = f"{start_date.replace('-', '')}_{end_date.replace('-', '')}"
+    
+    # 結果の保存
+    result_path = os.path.join(result_dir, f'四半期足株価変動率比較_{period_str}.png')
+    plt.savefig(result_path, bbox_inches='tight')
+    plt.close()
+    
+    # CSVファイルとしても保存
+    csv_path = os.path.join(result_dir, f'四半期足株価変動率比較_{period_str}.csv')
+    combined_data.to_csv(csv_path)
+    
+    print(f"分析完了。結果は {result_dir} に保存されました：")
+    print(f" - 画像: {result_path}")
+    print(f" - CSV: {csv_path}")
 else:
-    print("\n読み込んだ銘柄データ:")
-    for i, (name, data) in enumerate(zip(stock_names, stock_data)):
-        print(f"{i+1}. {name}: データ数 = {len(data)}")
-    
-    # 横並びでの比較グラフを作成
-    plt.figure(figsize=(15, 8))
-    
-    # 各株価データをプロット
-    for i, data in enumerate(stock_data):
-        plt.plot(data.index, data.values, label=stock_names[i], linewidth=2)
-    
-    # グラフの設定
-    plt.title('四半期足株価比較', fontsize=16)
-    plt.xlabel('日付', fontsize=12)
-    plt.ylabel('株価（円）', fontsize=12)
-    plt.grid(True, alpha=0.3)
-    plt.legend(loc='best')
-    
-    # x軸の日付表示を調整
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y年%m月'))
-    plt.gca().xaxis.set_major_locator(mdates.YearLocator())
-    plt.xticks(rotation=45)
-    
-    # グラフを保存
-    plt.tight_layout()
-    output_path = os.path.join(output_folder, '四半期足株価比較.png')
-    plt.savefig(output_path)
-    print(f"グラフを保存しました: {output_path}")
-    
-    # 各株価の変動率を計算して比較グラフを作成
-    plt.figure(figsize=(15, 8))
-    
-    for i, data in enumerate(stock_data):
-        if len(data) > 0:
-            # 最初の値で正規化して変動率を計算
-            normalized_data = data / data.iloc[0] * 100
-            plt.plot(normalized_data.index, normalized_data.values, label=stock_names[i], linewidth=2)
-    
-    # グラフの設定
-    plt.title('四半期足株価変動率比較（初期値=100）', fontsize=16)
-    plt.xlabel('日付', fontsize=12)
-    plt.ylabel('変動率（%）', fontsize=12)
-    plt.grid(True, alpha=0.3)
-    plt.legend(loc='best')
-    
-    # グラフに基準線（100%）を追加
-    plt.axhline(y=100, color='gray', linestyle='--', alpha=0.5)
-    
-    # x軸の日付表示を調整
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y年%m月'))
-    plt.gca().xaxis.set_major_locator(mdates.YearLocator())
-    plt.xticks(rotation=45)
-    
-    # グラフを保存
-    plt.tight_layout()
-    output_path = os.path.join(output_folder, '四半期足株価変動率比較.png')
-    plt.savefig(output_path)
-    print(f"変動率比較グラフを保存しました: {output_path}")
+    print("指定した期間内のデータが見つかりませんでした。")
