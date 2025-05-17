@@ -1,32 +1,12 @@
 {
     "tickers": [
         {
-            "symbol": "7974.T",
-            "name": "任天堂"
+            "symbol": "^sox",
+            "name": "半導体指数"
         },
         {
-            "symbol": "9766.T",
-            "name": "コナミ"
-        },
-        {
-            "symbol": "9697.T",
-            "name": "カプコン"
-        },
-        {
-            "symbol": "7203.T",
-            "name": "トヨタ"
-        },
-        {
-            "symbol": "AAPL",
-            "name": "Apple Inc."
-        },
-        {
-            "symbol": "^DJI",
-            "name": "Dow Jones Industrial Average"
-        },
-        {
-            "symbol": "^N225",
-            "name": "日経平均"
+            "symbol": "VOO",
+            "name": "Vanguard S&P 500 ETF"
         }
     ],
     "use_japanese_columns": false,
