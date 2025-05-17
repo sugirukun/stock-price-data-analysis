@@ -207,7 +207,10 @@ if all_normalized_data:
     fig.update_layout(
         title=f'四半期足変動率比較（{start_date}～{end_date}、開始日基準：1.0）',
         xaxis_title='四半期',
-        yaxis_title='変動率（開始日=1.0）',
+        yaxis=dict(
+        type='log',  # 対数スケールを使用
+        title='変動率（開始日=1.0、対数スケール）'
+    ),
         hovermode='x unified',
         template='plotly_white',
         legend_title='銘柄',
