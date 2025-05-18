@@ -1,14 +1,46 @@
 {
     "tickers": [
         {
+            "symbol": "7974.T",
+            "name": "任天堂"
+        },
+        {
             "symbol": "^sox",
             "name": "半導体指数"
         },
         {
             "symbol": "VOO",
             "name": "Vanguard S&P 500 ETF"
+        },
+        {
+            "symbol": "4755.T",
+            "name": "Rakuten Group, Inc."
         }
     ],
     "use_japanese_columns": false,
-    "output_dir": "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
+    "output_dir": "C:\\Users\\rilak\\Desktop\\株価\\株価データ",
+    "favorites": [
+        {
+            "symbol": "4755.T",
+            "name": "Rakuten Group, Inc."
+        },
+        {
+            "symbol": "VOO",
+            "name": "Vanguard S&P 500 ETF"
+        }
+    ],
+    "portfolios": [
+        {
+            "name": "ゲーム",
+            "tickers": []
+        },
+        {
+            "name": "通信",
+            "tickers": []
+        },
+        {
+            "name": "ポートフォリオ3",
+            "tickers": []
+        }
+    ]
 }
