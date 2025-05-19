@@ -9,8 +9,11 @@ import sys
 # 現在の日付を取得（ファイル名用）
 today = datetime.now().strftime("%Y%m%d")
 
-# 設定ファイルのパス
-CONFIG_FILE = "stock_config.json"
+# 設定ファイルのパス - 絶対パスを使用
+CONFIG_FILE = "C:\\Users\\rilak\\Desktop\\株価\\stock_config.json"
+
+# 出力ディレクトリを固定値で設定
+OUTPUT_DIR = "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
 
 def load_config():
     """設定ファイルを読み込む、存在しない場合はデフォルト設定を返す"""
@@ -21,7 +24,7 @@ def load_config():
             {"symbol": "AAPL", "name": "アップル"}
         ],
         "use_japanese_columns": False,
-        "output_dir": "C:\\Users\\rilak\\Desktop\\株価\\株価データ"
+        "output_dir": OUTPUT_DIR
     }
     
     if os.path.exists(CONFIG_FILE):
@@ -29,6 +32,10 @@ def load_config():
             with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                 config = json.load(f)
                 print(f"設定ファイル '{CONFIG_FILE}' を読み込みました。")
+                
+                # 出力ディレクトリは常に固定値を使用
+                config["output_dir"] = OUTPUT_DIR
+                
                 return config
         except Exception as e:
             print(f"設定ファイルの読み込み中にエラーが発生しました: {e}")
@@ -46,7 +53,9 @@ def main():
     # 設定から情報を取得
     ticker_config = config.get("tickers", [])
     use_japanese_columns = config.get("use_japanese_columns", False)
-    output_dir = config.get("output_dir", "C:\\Users\\rilak\\Desktop\\株価\\株価データ")
+    
+    # 出力ディレクトリを常に固定値に設定
+    output_dir = OUTPUT_DIR
     
     # ティッカー情報をディクショナリに変換
     tickers = {item["symbol"]: item["name"] for item in ticker_config}
@@ -124,8 +133,11 @@ def main():
                     tickers[ticker] = manual_name
     
     # 出力ディレクトリを確保
-    os.makedirs(output_dir, exist_ok=True)
-    print(f"\nデータをローカルフォルダに保存します: {output_dir}")
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        print(f"\nデータをローカルフォルダに保存します: {output_dir}")
+    except Exception as e:
+        print(f"警告: 出力ディレクトリの作成中にエラーが発生しました: {e}")
     
     # カラム名の表示設定
     if use_japanese_columns:

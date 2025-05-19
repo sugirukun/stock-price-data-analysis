@@ -5,42 +5,279 @@
             "name": "任天堂"
         },
         {
+            "symbol": "9697.T",
+            "name": "カプコン"
+        },
+        {
+            "symbol": "9766.T",
+            "name": "コナミ"
+        },
+        {
+            "symbol": "1329.T",
+            "name": "iシェアーズ・コア 日経225(ETF)"
+        },
+        {
+            "symbol": "1305.T",
+            "name": "TOPIX(ETF)"
+        }
+    ],
+    "use_japanese_columns": false,
+    "output_dir": "C:/Users/rilak/Desktop/株価",
+    "favorites": [
+        {
+            "symbol": "JPY=X",
+            "name": "ドル円為替"
+        },
+        {
+            "symbol": "7974.T",
+            "name": "任天堂"
+        },
+        {
+            "symbol": "9697.T",
+            "name": "カプコン"
+        },
+        {
+            "symbol": "9766.T",
+            "name": "コナミ"
+        },
+        {
+            "symbol": "1540.T",
+            "name": "純金上場信託ETF"
+        },
+        {
+            "symbol": "^GSPC",
+            "name": "S&P 500"
+        },
+        {
+            "symbol": "1305.T",
+            "name": "TOPIX(ETF)"
+        },
+        {
+            "symbol": "1329.T",
+            "name": "iシェアーズ・コア 日経225(ETF)"
+        },
+        {
             "symbol": "^sox",
             "name": "半導体指数"
         },
         {
-            "symbol": "VOO",
-            "name": "Vanguard S&P 500 ETF"
+            "symbol": "^IXIC",
+            "name": "NASDAQ Composite"
+        },
+        {
+            "symbol": "1655.T",
+            "name": "S&P500 （日本市場ETF）"
+        },
+        {
+            "symbol": "7203.T",
+            "name": "トヨタ"
+        },
+        {
+            "symbol": "7269.T",
+            "name": "スズキ"
+        },
+        {
+            "symbol": "7267.T",
+            "name": "ホンダ"
+        },
+        {
+            "symbol": "AAPL",
+            "name": "アップル"
+        },
+        {
+            "symbol": "MSFT",
+            "name": "Microsoft"
+        },
+        {
+            "symbol": "5844.T",
+            "name": "京都銀行"
+        },
+        {
+            "symbol": "4063.T",
+            "name": "信越化学工業"
+        },
+        {
+            "symbol": "8088.T",
+            "name": "岩谷"
         },
         {
             "symbol": "4755.T",
             "name": "Rakuten Group, Inc."
-        }
-    ],
-    "use_japanese_columns": false,
-    "output_dir": "C:\\Users\\rilak\\Desktop\\株価\\株価データ",
-    "favorites": [
-        {
-            "symbol": "4755.T",
-            "name": "Rakuten Group, Inc."
         },
         {
-            "symbol": "VOO",
-            "name": "Vanguard S&P 500 ETF"
+            "symbol": "9418.T",
+            "name": "U-NEXT HOLDINGS Co.,Ltd."
+        },
+        {
+            "symbol": "2767.T",
+            "name": "円谷フィールズ　ホールディングス"
         }
     ],
     "portfolios": [
         {
-            "name": "ゲーム",
+            "name": "指数　指数連動ETF",
+            "tickers": [
+                {
+                    "symbol": "^GSPC",
+                    "name": "S&P 500"
+                },
+                {
+                    "symbol": "^IXIC",
+                    "name": "NASDAQ Composite"
+                },
+                {
+                    "symbol": "1305.T",
+                    "name": "TOPIX(ETF)"
+                },
+                {
+                    "symbol": "1329.T",
+                    "name": "iシェアーズ・コア 日経225(ETF)"
+                },
+                {
+                    "symbol": "^sox",
+                    "name": "半導体指数"
+                },
+                {
+                    "symbol": "1540.T",
+                    "name": "純金上場信託ETF"
+                },
+                {
+                    "symbol": "1655.T",
+                    "name": "S&P500 （日本市場ETF）"
+                }
+            ]
+        },
+        {
+            "name": "総合サービス",
+            "tickers": [
+                {
+                    "symbol": "4755.T",
+                    "name": "Rakuten Group, Inc."
+                }
+            ]
+        },
+        {
+            "name": "ゲーム　エンタメ",
+            "tickers": [
+                {
+                    "symbol": "7974.T",
+                    "name": "任天堂"
+                },
+                {
+                    "symbol": "9697.T",
+                    "name": "カプコン"
+                },
+                {
+                    "symbol": "9766.T",
+                    "name": "コナミ"
+                },
+                {
+                    "symbol": "2767.T",
+                    "name": "円谷フィールズ　ホールディングス"
+                }
+            ]
+        },
+        {
+            "name": "金融",
+            "tickers": [
+                {
+                    "symbol": "5838.T",
+                    "name": "楽天銀行"
+                },
+                {
+                    "symbol": "5844.T",
+                    "name": "京都銀行"
+                }
+            ]
+        },
+        {
+            "name": "自動車",
+            "tickers": [
+                {
+                    "symbol": "7203.T",
+                    "name": "トヨタ"
+                },
+                {
+                    "symbol": "7269.T",
+                    "name": "スズキ"
+                },
+                {
+                    "symbol": "7267.T",
+                    "name": "ホンダ"
+                }
+            ]
+        },
+        {
+            "name": "情報通信　IT",
+            "tickers": [
+                {
+                    "symbol": "9418.T",
+                    "name": "U-NEXT HOLDINGS Co.,Ltd."
+                }
+            ]
+        },
+        {
+            "name": "エネルギー",
             "tickers": []
         },
         {
-            "name": "通信",
+            "name": "素材",
+            "tickers": [
+                {
+                    "symbol": "4063.T",
+                    "name": "信越化学工業"
+                }
+            ]
+        },
+        {
+            "name": "化学",
+            "tickers": [
+                {
+                    "symbol": "8088.T",
+                    "name": "岩谷"
+                }
+            ]
+        },
+        {
+            "name": "不動産　建設",
             "tickers": []
         },
         {
-            "name": "ポートフォリオ3",
+            "name": "商社",
             "tickers": []
+        },
+        {
+            "name": "運輸　倉庫",
+            "tickers": []
+        },
+        {
+            "name": "機械",
+            "tickers": []
+        },
+        {
+            "name": "医療",
+            "tickers": []
+        },
+        {
+            "name": "小売　サービス",
+            "tickers": []
+        },
+        {
+            "name": "米国株",
+            "tickers": [
+                {
+                    "symbol": "NVDA",
+                    "name": "エヌビディア"
+                },
+                {
+                    "symbol": "AAPL",
+                    "name": "アップル"
+                },
+                {
+                    "symbol": "MSFT",
+                    "name": "Microsoft"
+                }
+            ]
         }
     ]
 }
