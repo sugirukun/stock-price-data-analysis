@@ -9,16 +9,28 @@
             "name": "カプコン"
         },
         {
-            "symbol": "9766.T",
-            "name": "コナミ"
+            "symbol": "1942.T",
+            "name": "Kandenko Co.,Ltd."
         },
         {
-            "symbol": "1329.T",
-            "name": "iシェアーズ・コア 日経225(ETF)"
+            "symbol": "5838.T",
+            "name": "楽天銀行"
         },
         {
-            "symbol": "1305.T",
-            "name": "TOPIX(ETF)"
+            "symbol": "5844.T",
+            "name": "京都銀行"
+        },
+        {
+            "symbol": "1540.T",
+            "name": "純金上場信託ETF"
+        },
+        {
+            "symbol": "AAPL",
+            "name": "アップル"
+        },
+        {
+            "symbol": "MSFT",
+            "name": "Microsoft"
         }
     ],
     "use_japanese_columns": false,
@@ -115,39 +127,6 @@
     ],
     "portfolios": [
         {
-            "name": "指数　指数連動ETF",
-            "tickers": [
-                {
-                    "symbol": "^GSPC",
-                    "name": "S&P 500"
-                },
-                {
-                    "symbol": "^IXIC",
-                    "name": "NASDAQ Composite"
-                },
-                {
-                    "symbol": "1305.T",
-                    "name": "TOPIX(ETF)"
-                },
-                {
-                    "symbol": "1329.T",
-                    "name": "iシェアーズ・コア 日経225(ETF)"
-                },
-                {
-                    "symbol": "^sox",
-                    "name": "半導体指数"
-                },
-                {
-                    "symbol": "1540.T",
-                    "name": "純金上場信託ETF"
-                },
-                {
-                    "symbol": "1655.T",
-                    "name": "S&P500 （日本市場ETF）"
-                }
-            ]
-        },
-        {
             "name": "総合サービス",
             "tickers": [
                 {
@@ -187,6 +166,39 @@
                 {
                     "symbol": "5844.T",
                     "name": "京都銀行"
+                }
+            ]
+        },
+        {
+            "name": "指数　指数連動ETF",
+            "tickers": [
+                {
+                    "symbol": "^GSPC",
+                    "name": "S&P 500"
+                },
+                {
+                    "symbol": "^IXIC",
+                    "name": "NASDAQ Composite"
+                },
+                {
+                    "symbol": "1305.T",
+                    "name": "TOPIX(ETF)"
+                },
+                {
+                    "symbol": "1329.T",
+                    "name": "iシェアーズ・コア 日経225(ETF)"
+                },
+                {
+                    "symbol": "^sox",
+                    "name": "半導体指数"
+                },
+                {
+                    "symbol": "1540.T",
+                    "name": "純金上場信託ETF"
+                },
+                {
+                    "symbol": "1655.T",
+                    "name": "S&P500 （日本市場ETF）"
                 }
             ]
         },
