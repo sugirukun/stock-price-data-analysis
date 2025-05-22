@@ -104,7 +104,7 @@ def edit_config():
                     print(f"エラーが発生しました: {e}")
                     name = input("銘柄名を手動で入力してください: ").strip()
                     if not name:
-                        print("銘柄名が入力されていません。操作をスキップします。")
+                        print("銘柄名が入力さていません。操作をスキップします。")
                         continue
             else:
                 print("ティッカーシンボルが入力されていません。操作をスキップします。")
