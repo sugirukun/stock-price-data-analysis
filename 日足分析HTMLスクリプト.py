@@ -118,14 +118,14 @@ start_date, end_date = get_date_range()
 # 日足データを処理して変動率と指標を計算する関数
 def process_daily_data(file_path, start_date, end_date):
     try:
-        # データの読み込み（日付列をパースしない）
+        # データの読み込み
         df = pd.read_csv(file_path)
         
         # 日付列をインデックスに設定
         if 'Date' in df.columns:
             try:
-                # まずUTCとして日付を解析
-                df['Date'] = pd.to_datetime(df['Date'], format='mixed', utc=True)
+                # 日付をパースし、タイムゾーン情報を処理
+                df['Date'] = pd.to_datetime(df['Date'], utc=True)
                 # UTCからローカル時間に変換し、時間情報を削除
                 df['Date'] = df['Date'].dt.tz_convert(None).dt.normalize()
                 df.set_index('Date', inplace=True)
@@ -133,7 +133,7 @@ def process_daily_data(file_path, start_date, end_date):
                 print(f"日付変換エラー（別の方法を試みます）: {str(e)}")
                 try:
                     # バックアップとして、単純な日付変換を試みる
-                    df['Date'] = pd.to_datetime(df['Date'], format='mixed')
+                    df['Date'] = pd.to_datetime(df['Date'])
                     df.set_index('Date', inplace=True)
                 except Exception as e:
                     print(f"日付変換の2次試行も失敗: {str(e)}")
@@ -159,19 +159,19 @@ def process_daily_data(file_path, start_date, end_date):
         # 不要なカラムを削除（Dividends, Stock Splitなど）
         df = df[required_columns]
         
-        # 連続した日付インデックスを作成（土日を除く）
+        # 連続した日付インデックスを作成（土日を含む）
         start_date_dt = pd.to_datetime(start_date)
         end_date_dt = pd.to_datetime(end_date)
-        all_dates = pd.date_range(start=start_date_dt, end=end_date_dt, freq='B')  # 'B'は営業日を表す
+        all_dates = pd.date_range(start=start_date_dt, end=end_date_dt, freq='D')
         
         # 元のデータを連続した日付でリインデックス
         df_reindexed = df.reindex(all_dates)
         
         # 欠損値を前の値で埋める（前方補完）
-        df_filled = df_reindexed.fillna(method='ffill')
+        df_filled = df_reindexed.ffill()
         
         # 最初の日のデータが欠損している場合は、後ろの値で埋める（後方補完）
-        df = df_filled.fillna(method='bfill')
+        df = df_filled.bfill()
         
         # まずデータを期間でフィルタリング
         df = df[(df.index >= start_date) & (df.index <= end_date)]
@@ -183,25 +183,32 @@ def process_daily_data(file_path, start_date, end_date):
         # 既に日足データなので、そのまま使用
         daily_data = df.copy()
         
-        # 開始日の値を取得
-        if daily_data.empty:
-            print(f"警告: {file_path} の日足データが空です。スキップします。")
-            return None
-        
         # テクニカル指標を追加
         daily_data = add_technical_indicators(daily_data)
-            
-        first_value = daily_data.iloc[0]['Close']
         
-        # 変動率の計算（開始日を1.0として正規化）
+        # 実データの開始日を見つける（最初のNaNではない値の日付）
+        first_valid_date = None
+        for date in daily_data.index:
+            if not pd.isna(daily_data.loc[date, 'Close']):
+                first_valid_date = date
+                break
+        
+        if first_valid_date is None:
+            print(f"警告: {file_path} に有効なデータがありません。スキップします。")
+            return None
+        
+        # 実データの開始日の値を取得
+        first_value = daily_data.loc[first_valid_date, 'Close']
+        
+        # 変動率の計算（実データの開始日を1.0として正規化）
         normalized_data = daily_data.copy()
         normalized_data['Normalized'] = daily_data['Close'] / first_value
         
         # 日次変化率も計算
         normalized_data['Daily_Change'] = daily_data['Close'].pct_change() * 100
         
-        # 休業日情報を追加
-        normalized_data['Is_Market_Holiday'] = normalized_data.index.isin(df.index)
+        # 休業日情報を追加（元のデータにある日付は営業日、ない日付は休業日）
+        normalized_data['Is_Market_Holiday'] = ~normalized_data.index.isin(df.index[~df['Close'].isna()])
         
         print(f"処理完了: {file_path} - 日足データ数: {len(normalized_data)}")
         return normalized_data
@@ -247,9 +254,6 @@ if all_normalized_data:
     print(f"結合前のデータ形状: {combined_data.shape}")
     print(f"結合前のインデックス: {combined_data.index[:5]} ... {combined_data.index[-5:]}")
     
-    # タイムゾーン情報を削除
-    combined_data.index = combined_data.index.tz_localize(None)
-    
     # 休場日を含む連続した日付インデックスを作成
     start_date_dt = pd.to_datetime(start_date)
     end_date_dt = pd.to_datetime(end_date)
@@ -263,10 +267,10 @@ if all_normalized_data:
     print(f"欠損日数: {len(weekdays_only) - len(combined_data)}")
     
     # 連続した日付インデックスでリインデックス（前方埋め）
-    combined_data_filled = combined_data.reindex(weekdays_only, method='ffill')
+    combined_data_filled = combined_data.reindex(weekdays_only).ffill()
     
     # 最初の日のデータが欠損している場合は後方埋め
-    combined_data_filled = combined_data_filled.fillna(method='bfill')
+    combined_data_filled = combined_data_filled.bfill()
     
     print(f"休場日補完後のデータ形状: {combined_data_filled.shape}")
     print(f"休場日補完後のインデックス: {combined_data_filled.index[:5]} ... {combined_data_filled.index[-5:]}")

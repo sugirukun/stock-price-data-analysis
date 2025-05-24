@@ -4,7 +4,7 @@ import os
 import numpy as np
 from datetime import datetime
 import japanize_matplotlib
-import plotly.graph_objects as go
+import plotly.graph_objects as go1
 import plotly.subplots as sp
 
 # ファイルを読み込むディレクトリとファイル名のパターン
