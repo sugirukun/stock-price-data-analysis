@@ -203,7 +203,7 @@ if all_normalized_data:
     combined_data.to_csv(csv_path)
     
     # 1. メイングラフ: 四半期足変動率比較
-    fig = go.Figure()
+    fig = go1.Figure()
     
     # 最終日のパフォーマンス順に銘柄を並び替え
     final_performance = combined_data.iloc[-1].sort_values(ascending=False)
@@ -229,7 +229,7 @@ if all_normalized_data:
         
         # 各銘柄のデータをプロット
         fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=combined_data.index,
                 y=combined_data[column],
                 mode='lines+markers',
@@ -343,7 +343,7 @@ if all_normalized_data:
         
         # ローソク足チャート（上段）
         technical_fig.add_trace(
-            go.Candlestick(
+            go1.Candlestick(
                 x=stock_data.index,
                 open=stock_data['Open'],
                 high=stock_data['High'],
@@ -361,7 +361,7 @@ if all_normalized_data:
         
         # 移動平均線（元の4四半期移動平均線）
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['MA4'],
                 mode='lines',
@@ -378,7 +378,7 @@ if all_normalized_data:
         # 追加の移動平均線
         if not stock_data['MA_短期'].isna().all():
             technical_fig.add_trace(
-                go.Scatter(
+                go1.Scatter(
                     x=stock_data.index,
                     y=stock_data['MA_短期'],
                     mode='lines',
@@ -394,7 +394,7 @@ if all_normalized_data:
         
         if not stock_data['MA_中期'].isna().all():
             technical_fig.add_trace(
-                go.Scatter(
+                go1.Scatter(
                     x=stock_data.index,
                     y=stock_data['MA_中期'],
                     mode='lines',
@@ -410,7 +410,7 @@ if all_normalized_data:
         
         if not stock_data['MA_長期'].isna().all():
             technical_fig.add_trace(
-                go.Scatter(
+                go1.Scatter(
                     x=stock_data.index,
                     y=stock_data['MA_長期'],
                     mode='lines',
@@ -427,7 +427,7 @@ if all_normalized_data:
         # ボリンジャーバンド（拡張版）
         # 中心線
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_中心線'],
                 mode='lines',
@@ -443,7 +443,7 @@ if all_normalized_data:
         
         # +1σ
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_上側1σ'],
                 mode='lines',
@@ -459,7 +459,7 @@ if all_normalized_data:
         
         # +2σ
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_上側2σ'],
                 mode='lines',
@@ -475,7 +475,7 @@ if all_normalized_data:
         
         # +3σ
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_上側3σ'],
                 mode='lines',
@@ -491,7 +491,7 @@ if all_normalized_data:
         
         # -1σ
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_下側1σ'],
                 mode='lines',
@@ -507,7 +507,7 @@ if all_normalized_data:
         
         # -2σ
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_下側2σ'],
                 mode='lines',
@@ -523,7 +523,7 @@ if all_normalized_data:
         
         # -3σ
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['BB_下側3σ'],
                 mode='lines',
@@ -541,7 +541,7 @@ if all_normalized_data:
         
         # RSIチャート（下段）
         technical_fig.add_trace(
-            go.Scatter(
+            go1.Scatter(
                 x=stock_data.index,
                 y=stock_data['RSI'],
                 mode='lines+markers',
@@ -642,7 +642,7 @@ if all_normalized_data:
     # 全期間変動率でソート
     table_data = sorted(table_data, key=lambda x: float(x['全期間変動率(%)'].replace(',', '.')), reverse=True)
     
-    table_fig = go.Figure(data=[go.Table(
+    table_fig = go1.Figure(data=[go1.Table(
         header=dict(
             values=['銘柄', '全期間変動率(%)', '最大上昇率(%)', '最大下落率(%)', '最大四半期リターン(%)', '最小四半期リターン(%)'],
             fill_color='paleturquoise',
