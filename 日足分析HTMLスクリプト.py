@@ -207,8 +207,11 @@ def process_daily_data(file_path, start_date, end_date):
         # 日次変化率も計算
         normalized_data['Daily_Change'] = daily_data['Close'].pct_change() * 100
         
+        # 元のCSVに含まれる日付を取得（実際の取引日）
+        original_dates = set(df.index[~df['Close'].isna()])
+        
         # 休業日情報を追加（元のデータにある日付は営業日、ない日付は休業日）
-        normalized_data['Is_Market_Holiday'] = ~normalized_data.index.isin(df.index[~df['Close'].isna()])
+        normalized_data['Is_Market_Holiday'] = ~normalized_data.index.isin(original_dates)
         
         print(f"処理完了: {file_path} - 日足データ数: {len(normalized_data)}")
         return normalized_data
@@ -259,15 +262,13 @@ if all_normalized_data:
     end_date_dt = pd.to_datetime(end_date)
     full_date_range = pd.date_range(start=start_date_dt, end=end_date_dt, freq='D')
     
-    # 土日を除外（平日のみ）
-    weekdays_only = full_date_range[full_date_range.weekday < 5]
-    
-    print(f"連続した平日数: {len(weekdays_only)}")
+    # 全ての日付を含める（土日祝日も含む）
+    print(f"連続した日数（全日）: {len(full_date_range)}")
     print(f"実際のデータ日数: {len(combined_data)}")
-    print(f"欠損日数: {len(weekdays_only) - len(combined_data)}")
+    print(f"欠損日数: {len(full_date_range) - len(combined_data)}")
     
-    # 連続した日付インデックスでリインデックス（前方埋め）
-    combined_data_filled = combined_data.reindex(weekdays_only).ffill()
+    # 全ての日付を含めるようにリインデックス
+    combined_data_filled = combined_data.reindex(full_date_range).ffill()
     
     # 最初の日のデータが欠損している場合は後方埋め
     combined_data_filled = combined_data_filled.bfill()
@@ -288,11 +289,11 @@ if all_normalized_data:
         f.write(f"休場日補完情報\n")
         f.write(f"==================\n")
         f.write(f"分析期間: {start_date} ～ {end_date}\n")
-        f.write(f"対象平日数: {len(weekdays_only)}\n")
+        f.write(f"対象日数（全日）: {len(full_date_range)}\n")
         f.write(f"実際のデータ日数: {len(all_normalized_data[0]) if all_normalized_data else 0}\n")
-        f.write(f"補完された日数: {len(weekdays_only) - (len(all_normalized_data[0]) if all_normalized_data else 0)}\n")
+        f.write(f"補完された日数: {len(full_date_range) - (len(all_normalized_data[0]) if all_normalized_data else 0)}\n")
         f.write(f"補完方法: 前日の値で埋める（前方埋め）\n")
-        f.write(f"注意: 土日は除外されています\n")
+        f.write(f"注意: 土日祝日を含む全ての日が表示されます\n")
     
     print(f"休場日補完情報を保存しました: {補完情報_path}")
     
