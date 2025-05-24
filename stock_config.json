@@ -11,30 +11,10 @@
         {
             "symbol": "AAPL",
             "name": "アップル"
-        }
-    ],
-    "use_japanese_columns": false,
-    "output_dir": "C:/Users/rilak/Desktop/株価",
-    "favorites": [
+        },
         {
             "symbol": "JPY=X",
             "name": "ドル円為替"
-        },
-        {
-            "symbol": "7974.T",
-            "name": "任天堂"
-        },
-        {
-            "symbol": "9697.T",
-            "name": "カプコン"
-        },
-        {
-            "symbol": "9766.T",
-            "name": "コナミ"
-        },
-        {
-            "symbol": "1540.T",
-            "name": "純金上場信託ETF"
         },
         {
             "symbol": "^GSPC",
@@ -73,12 +53,12 @@
             "name": "ホンダ"
         },
         {
-            "symbol": "AAPL",
-            "name": "アップル"
-        },
-        {
             "symbol": "MSFT",
             "name": "Microsoft"
+        },
+        {
+            "symbol": "9766.T",
+            "name": "コナミ"
         },
         {
             "symbol": "5844.T",
@@ -87,6 +67,10 @@
         {
             "symbol": "4063.T",
             "name": "信越化学工業"
+        },
+        {
+            "symbol": "9697.T",
+            "name": "カプコン"
         },
         {
             "symbol": "8088.T",
@@ -103,6 +87,22 @@
         {
             "symbol": "2767.T",
             "name": "円谷フィールズ　ホールディングス"
+        }
+    ],
+    "use_japanese_columns": false,
+    "output_dir": "C:/Users/rilak/Desktop/株価",
+    "favorites": [
+        {
+            "symbol": "7974.T",
+            "name": "任天堂"
+        },
+        {
+            "symbol": "1540.T",
+            "name": "純金上場信託ETF"
+        },
+        {
+            "symbol": "AAPL",
+            "name": "アップル"
         }
     ],
     "portfolios": [
