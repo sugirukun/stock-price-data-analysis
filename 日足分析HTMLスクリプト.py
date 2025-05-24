@@ -10,7 +10,7 @@ import plotly.subplots as sp
 # ファイルを読み込むディレクトリとファイル名のパターン
 directory = r"C:\Users\rilak\Desktop\株価\株価データ"
 # 日足のファイルのみをフィルタリング
-files = [f for f in os.listdir(directory) if f.endswith('.csv') and '日足' in f]
+files = [f for f in os.listdir(directory) if f.endswith('.csv') and ('日足' in f or 'daily' in f.lower())]
 
 # 結果を保存するディレクトリ
 result_dir = r"C:\Users\rilak\Desktop\株価\分析結果"
@@ -118,12 +118,26 @@ start_date, end_date = get_date_range()
 # 日足データを処理して変動率と指標を計算する関数
 def process_daily_data(file_path, start_date, end_date):
     try:
-        # データの読み込み
-        df = pd.read_csv(file_path, index_col=0, parse_dates=True)
+        # データの読み込み（日付列をパースしない）
+        df = pd.read_csv(file_path)
         
-        # タイムゾーン情報を削除
-        if df.index.tz is not None:
-            df.index = df.index.tz_localize(None)
+        # 日付列をインデックスに設定
+        if 'Date' in df.columns:
+            try:
+                # まずUTCとして日付を解析
+                df['Date'] = pd.to_datetime(df['Date'], format='mixed', utc=True)
+                # UTCからローカル時間に変換し、時間情報を削除
+                df['Date'] = df['Date'].dt.tz_convert(None).dt.normalize()
+                df.set_index('Date', inplace=True)
+            except Exception as e:
+                print(f"日付変換エラー（別の方法を試みます）: {str(e)}")
+                try:
+                    # バックアップとして、単純な日付変換を試みる
+                    df['Date'] = pd.to_datetime(df['Date'], format='mixed')
+                    df.set_index('Date', inplace=True)
+                except Exception as e:
+                    print(f"日付変換の2次試行も失敗: {str(e)}")
+                    return None
         
         # インデックスがDatetimeIndexであることを確認
         if not isinstance(df.index, pd.DatetimeIndex):
@@ -136,11 +150,28 @@ def process_daily_data(file_path, start_date, end_date):
             return None
             
         # 必須カラムがあることを確認
-        required_columns = ['Open', 'High', 'Low', 'Close']
+        required_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             print(f"警告: {file_path} に必須カラム {missing_columns} がありません。スキップします。")
             return None
+        
+        # 不要なカラムを削除（Dividends, Stock Splitなど）
+        df = df[required_columns]
+        
+        # 連続した日付インデックスを作成（土日を除く）
+        start_date_dt = pd.to_datetime(start_date)
+        end_date_dt = pd.to_datetime(end_date)
+        all_dates = pd.date_range(start=start_date_dt, end=end_date_dt, freq='B')  # 'B'は営業日を表す
+        
+        # 元のデータを連続した日付でリインデックス
+        df_reindexed = df.reindex(all_dates)
+        
+        # 欠損値を前の値で埋める（前方補完）
+        df_filled = df_reindexed.fillna(method='ffill')
+        
+        # 最初の日のデータが欠損している場合は、後ろの値で埋める（後方補完）
+        df = df_filled.fillna(method='bfill')
         
         # まずデータを期間でフィルタリング
         df = df[(df.index >= start_date) & (df.index <= end_date)]
@@ -169,11 +200,16 @@ def process_daily_data(file_path, start_date, end_date):
         # 日次変化率も計算
         normalized_data['Daily_Change'] = daily_data['Close'].pct_change() * 100
         
+        # 休業日情報を追加
+        normalized_data['Is_Market_Holiday'] = normalized_data.index.isin(df.index)
+        
         print(f"処理完了: {file_path} - 日足データ数: {len(normalized_data)}")
         return normalized_data
         
     except Exception as e:
         print(f"エラー発生: {file_path} の処理中にエラーが発生しました: {str(e)}")
+        import traceback
+        print(traceback.format_exc())  # 詳細なエラー情報を表示
         return None
 
 # 全銘柄のデータを格納するリスト
@@ -210,6 +246,9 @@ if all_normalized_data:
     
     print(f"結合前のデータ形状: {combined_data.shape}")
     print(f"結合前のインデックス: {combined_data.index[:5]} ... {combined_data.index[-5:]}")
+    
+    # タイムゾーン情報を削除
+    combined_data.index = combined_data.index.tz_localize(None)
     
     # 休場日を含む連続した日付インデックスを作成
     start_date_dt = pd.to_datetime(start_date)
@@ -933,5 +972,170 @@ if all_normalized_data:
     
     print(f"\nダッシュボードを開くには、以下のファイルをブラウザで開いてください：")
     print(f"{dashboard_path}")
+
+    # テクニカル分析レポートの生成
+    technical_report_path = os.path.join(result_dir, f'テクニカル分析レポート_{period_str}.txt')
+    with open(technical_report_path, 'w', encoding='utf-8') as f:
+        f.write(f"テクニカル分析レポート（{start_date}～{end_date}）\n")
+        f.write("=" * 80 + "\n\n")
+        
+        for stock in stock_names:
+            stock_data = all_data[stock]
+            f.write(f"\n{stock}の分析\n")
+            f.write("-" * 40 + "\n")
+            
+            # 価格トレンド分析
+            latest_close = stock_data['Close'].iloc[-1]
+            ma5_latest = stock_data['MA5'].iloc[-1]
+            ma25_latest = stock_data['MA25'].iloc[-1]
+            ma75_latest = stock_data['MA75'].iloc[-1]
+            ma200_latest = stock_data['MA200'].iloc[-1]
+            
+            f.write("\n【価格トレンド分析】\n")
+            f.write(f"現在値: {latest_close:.2f}\n")
+            f.write(f"5日移動平均線: {ma5_latest:.2f}\n")
+            f.write(f"25日移動平均線: {ma25_latest:.2f}\n")
+            f.write(f"75日移動平均線: {ma75_latest:.2f}\n")
+            f.write(f"200日移動平均線: {ma200_latest:.2f}\n")
+            
+            # トレンド判定
+            trend_text = []
+            if latest_close > ma5_latest > ma25_latest:
+                trend_text.append("短期的に強い上昇トレンド")
+            elif latest_close < ma5_latest < ma25_latest:
+                trend_text.append("短期的に強い下降トレンド")
+            
+            if ma5_latest > ma75_latest and ma25_latest > ma75_latest:
+                trend_text.append("中期的に上昇トレンド")
+            elif ma5_latest < ma75_latest and ma25_latest < ma75_latest:
+                trend_text.append("中期的に下降トレンド")
+            
+            if all(x > ma200_latest for x in [latest_close, ma5_latest, ma25_latest, ma75_latest]):
+                trend_text.append("長期的に強い上昇トレンド")
+            elif all(x < ma200_latest for x in [latest_close, ma5_latest, ma25_latest, ma75_latest]):
+                trend_text.append("長期的に強い下降トレンド")
+            
+            if trend_text:
+                f.write("\nトレンド判定：\n")
+                for trend in trend_text:
+                    f.write(f"- {trend}\n")
+            
+            # RSI分析
+            latest_rsi = stock_data['RSI'].iloc[-1]
+            f.write("\n【RSI分析】\n")
+            f.write(f"現在のRSI値: {latest_rsi:.2f}\n")
+            if latest_rsi >= 70:
+                f.write("※ 売られ過ぎの可能性が高い（70以上）\n")
+            elif latest_rsi <= 30:
+                f.write("※ 買われ過ぎの可能性が高い（30以下）\n")
+            
+            # MACD分析
+            latest_macd = stock_data['MACD'].iloc[-1]
+            latest_signal = stock_data['MACD_Signal'].iloc[-1]
+            latest_hist = stock_data['MACD_Histogram'].iloc[-1]
+            
+            f.write("\n【MACD分析】\n")
+            f.write(f"MACD: {latest_macd:.4f}\n")
+            f.write(f"シグナル: {latest_signal:.4f}\n")
+            f.write(f"ヒストグラム: {latest_hist:.4f}\n")
+            
+            # MACDのクロス判定
+            if latest_hist > 0 and stock_data['MACD_Histogram'].iloc[-2] <= 0:
+                f.write("※ 直近でゴールデンクロス（買いシグナル）\n")
+            elif latest_hist < 0 and stock_data['MACD_Histogram'].iloc[-2] >= 0:
+                f.write("※ 直近でデッドクロス（売りシグナル）\n")
+            
+            # ボリンジャーバンド分析
+            latest_price = stock_data['Close'].iloc[-1]
+            latest_bb_upper2 = stock_data['BB_上側2σ'].iloc[-1]
+            latest_bb_lower2 = stock_data['BB_下側2σ'].iloc[-1]
+            latest_bb_mid = stock_data['BB_中心線'].iloc[-1]
+            
+            f.write("\n【ボリンジャーバンド分析】\n")
+            f.write(f"現在値: {latest_price:.2f}\n")
+            f.write(f"上側2σ: {latest_bb_upper2:.2f}\n")
+            f.write(f"中心線: {latest_bb_mid:.2f}\n")
+            f.write(f"下側2σ: {latest_bb_lower2:.2f}\n")
+            
+            if latest_price > latest_bb_upper2:
+                f.write("※ +2σを上回っており、売られ過ぎの可能性\n")
+            elif latest_price < latest_bb_lower2:
+                f.write("※ -2σを下回っており、買われ過ぎの可能性\n")
+            
+            # ストキャスティクス分析
+            latest_k = stock_data['%K'].iloc[-1]
+            latest_d = stock_data['%D'].iloc[-1]
+            
+            f.write("\n【ストキャスティクス分析】\n")
+            f.write(f"%K: {latest_k:.2f}\n")
+            f.write(f"%D: {latest_d:.2f}\n")
+            
+            if latest_k > 80 and latest_d > 80:
+                f.write("※ 売られ過ぎの水準（80以上）\n")
+            elif latest_k < 20 and latest_d < 20:
+                f.write("※ 買われ過ぎの水準（20以下）\n")
+            
+            # 出来高分析
+            latest_volume = stock_data['Volume'].iloc[-1]
+            avg_volume = stock_data['Volume_MA'].iloc[-1]
+            volume_ratio = latest_volume / avg_volume if avg_volume != 0 else 0
+            
+            f.write("\n【出来高分析】\n")
+            f.write(f"直近出来高: {int(latest_volume):,}\n")
+            f.write(f"20日平均出来高: {int(avg_volume):,}\n")
+            f.write(f"出来高乖離率: {(volume_ratio - 1) * 100:.2f}%\n")
+            
+            if volume_ratio > 2:
+                f.write("※ 出来高が平均の2倍を超えており、大きな動きの可能性\n")
+            
+            # 総合判断
+            f.write("\n【総合判断】\n")
+            signals = []
+            
+            # トレンド
+            if latest_close > ma5_latest > ma25_latest > ma75_latest:
+                signals.append("強い上昇トレンド")
+            elif latest_close < ma5_latest < ma25_latest < ma75_latest:
+                signals.append("強い下降トレンド")
+            
+            # RSI
+            if latest_rsi > 70:
+                signals.append("RSIが売られ過ぎ")
+            elif latest_rsi < 30:
+                signals.append("RSIが買われ過ぎ")
+            
+            # MACD
+            if latest_hist > 0 and stock_data['MACD_Histogram'].iloc[-2] <= 0:
+                signals.append("MACDがゴールデンクロス")
+            elif latest_hist < 0 and stock_data['MACD_Histogram'].iloc[-2] >= 0:
+                signals.append("MACDがデッドクロス")
+            
+            # ボリンジャーバンド
+            if latest_price > latest_bb_upper2:
+                signals.append("ボリンジャーバンド+2σを超過")
+            elif latest_price < latest_bb_lower2:
+                signals.append("ボリンジャーバンド-2σを超過")
+            
+            # ストキャスティクス
+            if latest_k > 80 and latest_d > 80:
+                signals.append("ストキャスティクスが売られ過ぎ")
+            elif latest_k < 20 and latest_d < 20:
+                signals.append("ストキャスティクスが買われ過ぎ")
+            
+            # 出来高
+            if volume_ratio > 2:
+                signals.append("出来高が急増")
+            
+            if signals:
+                f.write("注目すべきシグナル：\n")
+                for signal in signals:
+                    f.write(f"- {signal}\n")
+            else:
+                f.write("現時点で特筆すべきシグナルはありません\n")
+            
+            f.write("\n" + "=" * 80 + "\n")
+    
+    print(f"8. テクニカル分析レポート: {technical_report_path}")
+
 else:
     print("指定した期間内のデータが見つかりませんでした。")

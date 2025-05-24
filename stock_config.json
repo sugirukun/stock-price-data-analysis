@@ -5,32 +5,12 @@
             "name": "任天堂"
         },
         {
-            "symbol": "9697.T",
-            "name": "カプコン"
-        },
-        {
-            "symbol": "1942.T",
-            "name": "Kandenko Co.,Ltd."
-        },
-        {
-            "symbol": "5838.T",
-            "name": "楽天銀行"
-        },
-        {
-            "symbol": "5844.T",
-            "name": "京都銀行"
-        },
-        {
             "symbol": "1540.T",
             "name": "純金上場信託ETF"
         },
         {
             "symbol": "AAPL",
             "name": "アップル"
-        },
-        {
-            "symbol": "MSFT",
-            "name": "Microsoft"
         }
     ],
     "use_japanese_columns": false,
